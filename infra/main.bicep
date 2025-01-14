@@ -9,6 +9,15 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
+@description('Admin username for the jumpbox VM')
+param vmAdminUsername string
+
+@secure()
+@description('Password for the admin user')
+param vmAdminPassword string
+
+// param azureFunctionAppName string = 'TestFunction'
+
 // Tags that should be applied to all resources.
 // 
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -22,4 +31,37 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: 'rg-${environmentName}'
   location: location
   tags: tags
+}
+
+module trafficManager 'trafficManager.bicep' = {
+  name: 'trafficManager'
+  scope: resourceGroup(rg.name)
+  params: {
+    environmentName: environmentName    
+  }
+}
+
+module azureFunction 'functionapp.bicep' = {
+  name: 'azureFunctionsDeploy'
+  scope: resourceGroup(rg.name)
+  params: {
+    location: location
+    environmentName: environmentName
+    virtualNetworkId: trafficManager.outputs.virtualNetworkId
+    subnetAppServiceIntegrationId: trafficManager.outputs.subnetAppServiceIntId
+    subnetPrivateEndpointId: trafficManager.outputs.subnetPrivateEndpointId
+    // vnetRouteAllEnabled: false
+    azureFunctionAppName: uniqueString(rg.id, environmentName, 'fn')
+  }
+}
+
+module jumpboxVM 'jumpbox.bicep' = {
+  name: 'jumpboxVM'
+  scope: resourceGroup(rg.name)
+  params: {
+    location: location
+    jumpboxVmSubnetId: trafficManager.outputs.subnetJumpBoxIntId
+    adminUserName: vmAdminUsername
+    adminPassword: vmAdminPassword
+  }
 }
