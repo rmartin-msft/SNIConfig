@@ -66,7 +66,7 @@ resource azureFunctionPlan 'Microsoft.Web/serverfarms@2021-01-01' = {
   }
 }
 
-resource azureFunction 'Microsoft.Web/sites@2020-12-01' = {
+resource azureFunction 'Microsoft.Web/sites@2023-12-01' = {
   name: azureFunctionAppName
   location: location
   kind: 'functionapp,linux'
@@ -74,6 +74,7 @@ resource azureFunction 'Microsoft.Web/sites@2020-12-01' = {
     httpsOnly: false
     serverFarmId: azureFunctionPlan.id
     reserved: true
+    publicNetworkAccess: 'Enabled'
     virtualNetworkSubnetId: subnetAppServiceIntegrationId
     siteConfig: {
       vnetRouteAllEnabled: vnetRouteAllEnabled
@@ -85,7 +86,7 @@ resource azureFunction 'Microsoft.Web/sites@2020-12-01' = {
           value: '~4'
         }
       ]
-    }
+    }    
   }
   identity: {
     type: 'SystemAssigned'
@@ -96,6 +97,23 @@ resource azureFunction 'Microsoft.Web/sites@2020-12-01' = {
     properties: {
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
+      ipSecurityRestrictions: [
+        {
+          vnetSubnetResourceId: subnetAppServiceIntegrationId
+          action: 'Allow'
+          tag: 'Default'
+          priority: 300
+          name: 'AccessViaVirtualNetwork'
+          description: 'Allow access only via virtual network'
+        }
+        {
+          ipAddress: 'Any'
+          action: 'Deny'
+          priority: 2147483647
+          name: 'deny all'
+          description: 'Deny all access'
+        }
+      ]
     }
   }
 }
