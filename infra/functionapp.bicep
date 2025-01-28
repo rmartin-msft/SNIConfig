@@ -107,6 +107,14 @@ resource azureFunction 'Microsoft.Web/sites@2023-12-01' = {
           description: 'Allow access only via virtual network'
         }
         {
+          ipAddress: 'AzureTrafficManager'          
+          action: 'Allow'
+          tag: 'ServiceTag'
+          priority: 300
+          name: 'AllowAzureTrafficManager'
+          description: 'Allow access from Azure Traffic Manager'
+        }
+        {
           ipAddress: 'Any'
           action: 'Deny'
           priority: 2147483647
