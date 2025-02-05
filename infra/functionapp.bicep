@@ -17,6 +17,8 @@ param virtualNetworkId string
 
 param azureFunctionAppName string = 'TestFunction'
 
+var dnsName = uniqueString(resourceGroup().id, environmentName, 'tm')
+
 @secure()
 param subnetAppServiceIntegrationId string
 
@@ -175,6 +177,38 @@ resource functionPrivateDnsZoneGroup 'Microsoft.Network/privateEndpoints/private
           privateDnsZoneId: functionPrivateDnsZone.id
         }
       }
+    ]
+  }
+}
+
+
+resource trafficManager 'Microsoft.Network/trafficManagerProfiles@2022-04-01' = {
+  name: 'myTrafficManagerProfile'
+  location: 'global'
+  properties: {
+    profileStatus: 'Enabled'
+    trafficRoutingMethod: 'Performance'
+    dnsConfig: {
+      relativeName: dnsName
+      ttl: 30
+    }
+    monitorConfig: {
+      protocol: 'HTTP'
+      port: 80
+      path: '/'
+    }
+    endpoints: [
+      {
+        name: 'AzFunction'
+        type: 'Microsoft.Network/trafficManagerProfiles/azureEndpoints'
+        properties: {
+          targetResourceId: azureFunction.id
+          target: '${azureFunctionAppName}.azurewebsites.net'
+          endpointStatus: 'Enabled'
+          priority: 1
+          weight: 1
+        }
+      }      
     ]
   }
 }

@@ -33,11 +33,12 @@ resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   tags: tags
 }
 
-module trafficManager 'trafficManager.bicep' = {
-  name: 'trafficManager'
+module virtualNet 'network.bicep' = {
+  name: 'virtualNet'
   scope: resourceGroup(rg.name)
   params: {
-    environmentName: environmentName    
+    environmentName: environmentName 
+    virtualNetworkName: 'vnet-${environmentName}'
   }
 }
 
@@ -47,9 +48,9 @@ module azureFunction 'functionapp.bicep' = {
   params: {
     location: location
     environmentName: environmentName
-    virtualNetworkId: trafficManager.outputs.virtualNetworkId
-    subnetAppServiceIntegrationId: trafficManager.outputs.subnetAppServiceIntId
-    subnetPrivateEndpointId: trafficManager.outputs.subnetPrivateEndpointId
+    virtualNetworkId: virtualNet.outputs.virtualNetworkId
+    subnetAppServiceIntegrationId: virtualNet.outputs.subnetAppServiceIntId
+    subnetPrivateEndpointId: virtualNet.outputs.subnetPrivateEndpointId
     // vnetRouteAllEnabled: false
     azureFunctionAppName: uniqueString(rg.id, environmentName, 'fn')
   }
@@ -60,8 +61,9 @@ module jumpboxVM 'jumpbox.bicep' = {
   scope: resourceGroup(rg.name)
   params: {
     location: location
-    jumpboxVmSubnetId: trafficManager.outputs.subnetJumpBoxIntId
+    jumpboxVmSubnetId: virtualNet.outputs.subnetJumpBoxIntId
     adminUserName: vmAdminUsername
     adminPassword: vmAdminPassword
   }
 }
+

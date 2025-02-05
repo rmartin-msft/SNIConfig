@@ -16,30 +16,13 @@ param subnetPrivateEndpointAddressPrefix string = '10.0.4.0/24'
 param virtualNetworkName string = 'myVirtualNetwork'
 
 param location string = resourceGroup().location
-var dnsName = uniqueString(resourceGroup().id, environmentName, 'tm')
+
 
 var nsgName = '${environmentName}-nsg'
 
 @description('The service types to enable service endpoints for on the App Service integration subnet.')
-param subnetAppServiceIntServiceEndpointTypes array = []
+param subnetAppServiceIntServiceEndpointTypes array = [ 'Microsoft.Web', 'Microsoft.KeyVault' ]
 
-resource trafficManager 'Microsoft.Network/trafficManagerProfiles@2022-04-01' = {
-  name: 'myTrafficManagerProfile'
-  location: 'global'
-  properties: {
-    profileStatus: 'Enabled'
-    trafficRoutingMethod: 'Performance'
-    dnsConfig: {
-      relativeName: dnsName
-      ttl: 30
-    }
-    monitorConfig: {
-      protocol: 'HTTP'
-      port: 80
-      path: '/'
-    }
-  }
-}
 
 resource privateEndpointNsg 'Microsoft.Network/networkSecurityGroups@2019-11-01' = {
   name: '${nsgName}-pe'
