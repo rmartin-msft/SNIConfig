@@ -16,13 +16,6 @@ param vmAdminUsername string
 @description('Password for the admin user')
 param vmAdminPassword string
 
-// param azureFunctionAppName string = 'TestFunction'
-
-// Tags that should be applied to all resources.
-// 
-// Note that 'azd-service-name' tags should be applied separately to service host resources.
-// Example usage:
-//   tags: union(tags, { 'azd-service-name': <service name in azure.yaml> })
 var tags = {
   'azd-env-name': environmentName
 }

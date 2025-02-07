@@ -117,6 +117,13 @@ resource azureFunction 'Microsoft.Web/sites@2023-12-01' = {
           description: 'Allow access from Azure Traffic Manager'
         }
         {
+          ipAddress: '216.168.240.0/20'
+          action: 'Allow'
+          priority: 300
+          name: 'Allow DigiCert'
+          description: 'Allow DigiCert'
+        }
+        {
           ipAddress: 'Any'
           action: 'Deny'
           priority: 2147483647
